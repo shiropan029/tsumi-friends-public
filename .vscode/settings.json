@@ -1,0 +1,9 @@
+{
+  "prisma.pinToPrisma6": true,
+  "cSpell.words": [
+    "nextauth",
+    "tmdb",
+    "tsumi",
+    "vercel"
+  ]
+}

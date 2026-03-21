@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// datasource db {
+//   provider = "sqlite"
+//   url      = env("DATABASE_URL")
+// }
+
+// ユーザー情報管理
+model UserAccount {
+  userId          String   @id @default(cuid()) // 自動採番
+  accountId       String   @unique // アカウントID（ログインID）
+  name            String // ユーザー名
+  passwordHash    String // ハッシュ化されたパスワード
+  description     String?  @default("") // 自己紹介文
+  profileImageUrl String? // プロフィール画像URL
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workStates  UserWorkState[]
+  workReviews UserWorkReview[] // 作品レビューのリレーション
+
+  // フォロー関連のリレーション
+  following Follow[] @relation("follower") // 自分がフォローしている
+  followers Follow[] @relation("following") // 自分のフォロワー
+
+  @@map("user_account")
+}
+
+// 作品視聴情報を管理
+model UserWorkState {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  workId      Int // TMDBのmediaID
+  mediaType   Int // 1:アニメ, 2:映画, 3:ドラマ
+  state       Int // 0:未設定, 1:見たい, 2:見てる, 3:見た
+  description String?  @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user UserAccount @relation(fields: [userId], references: [userId])
+
+  @@index([userId, createdAt])
+  @@map("user_work_state")
+}
+
+// 感想管理
+model UserWorkReview {
+  userId    String
+  mediaType Int // 1:アニメ, 2:映画, 3:ドラマ
+  workId    Int // TMDBのmediaID
+  rating    Int? // 1:普通, 10:好き,100: 最高
+  review    String? // 感想テキスト
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user UserAccount @relation(fields: [userId], references: [userId])
+
+  @@id([userId, mediaType, workId])
+  @@map("user_work_review")
+}
+
+// フォロー状態管理
+model Follow {
+  userId      String
+  followingId String // フォローしているuserId
+  createdAt   DateTime @default(now())
+
+  follower  UserAccount @relation("follower", fields: [userId], references: [userId])
+  following UserAccount @relation("following", fields: [followingId], references: [userId])
+
+  @@id([userId, followingId])
+  @@map("user_follow")
+}
