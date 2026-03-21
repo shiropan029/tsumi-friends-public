@@ -29,12 +29,11 @@ classDiagram
     }
 
     class TMDB_API {
-        <<external>>
-        api.themoviedb.org/3
+        https://api.themoviedb.org/3
     }
 
     MediaApi <|.. tmdbMediaApi : 実装
-    tmdbMediaApi --> TMDB_API : HTTP通信
+    tmdbMediaApi --> TMDB_API : HTTPS
     features --> MediaApi : 依存
 
     note for MediaApi "アプリケーション層はMediaApiインターフェースにのみ依存する
